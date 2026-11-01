@@ -69,7 +69,25 @@ async function syncToTex(tex: vscode.Uri, selected: string) { const found = awai
 function parseUnifiedReplacement(output: string, original: string) { const lines = output.split(/\r?\n/); const plus = lines.filter(l => l.startsWith('+') && !l.startsWith('+++')).map(l => l.slice(1)); return plus.length ? plus.join('\n') : (output.includes(original) ? output.split(original)[1].trim() : undefined); }
 
 function runCodex(prompt: string, cwd: string): Promise<string> { return new Promise((resolve, reject) => { const cmd = vscode.workspace.getConfiguration('papilotCodex').get<string>('codexCommand', 'codex'); const p = spawn(cmd, ['exec', '--full-auto', prompt], { cwd: path.dirname(cwd), shell: process.platform === 'win32' }); let out = '', err = ''; p.stdout.on('data', d => out += d); p.stderr.on('data', d => err += d); p.on('error', reject); p.on('close', code => code === 0 ? resolve(out) : reject(new Error(err || `codex exited ${code}`))); }); }
-async function compile() { const tex = await rootTex(); if (!tex) return vscode.window.showErrorMessage('No .tex file found.'); const cfg = vscode.workspace.getConfiguration('papilotCodex'); const cmd = cfg.get<string>('latexCommand','latexmk'); const args = cfg.get<string[]>('latexArgs',['-pdf','-interaction=nonstopmode']); await new Promise<void>((resolve,reject)=>{const p=spawn(cmd,[...args,path.basename(tex.fsPath)],{cwd:path.dirname(tex.fsPath),shell:process.platform==='win32'}); let e='';p.stderr.on('data',d=>e+=d);p.on('error',reject);p.on('close',c=>c===0?resolve():reject(new Error(e||`compiler exited ${c}`)));}); await openPreview(); }
+async function compile() {
+  const tex = await rootTex(); if (!tex) return vscode.window.showErrorMessage('No .tex file found.');
+  const cfg = vscode.workspace.getConfiguration('papilotCodex');
+  const cmd = cfg.get<string>('latexCommand','latexmk');
+  const args = cfg.get<string[]>('latexArgs',['-pdf','-interaction=nonstopmode']);
+  try {
+    await new Promise<void>((resolve,reject)=>{const p=spawn(cmd,[...args,path.basename(tex.fsPath)],{cwd:path.dirname(tex.fsPath),shell:process.platform==='win32'}); let e='';p.stderr.on('data',d=>e+=d);p.on('error',reject);p.on('close',c=>c===0?resolve():reject(new Error(e||`compiler exited ${c}`)));});
+    await openPreview();
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code === 'ENOENT' || code === 'EACCES') {
+      const isWsl = process.env.WSL_DISTRO_NAME || process.platform === 'linux';
+      const command = isWsl ? 'sudo apt update && sudo apt install -y latexmk texlive-latex-base texlive-latex-extra' : 'Install MiKTeX or TeX Live and add latexmk to PATH';
+      vscode.window.showErrorMessage(`ResearchPilot не нашёл рабочий LaTeX-компилятор (${cmd}). Установи latexmk: ${command}`, 'Copy command').then(action => { if (action === 'Copy command') vscode.env.clipboard.writeText(command); });
+    } else {
+      vscode.window.showErrorMessage(`LaTeX compilation failed: ${(error as Error).message}`);
+    }
+  }
+}
 async function acceptEdit() { if (!proposed) return vscode.window.showInformationMessage('No staged edit.'); proposed = undefined; vscode.window.showInformationMessage('Edit accepted.'); }
 async function rejectEdit() { if (!proposed) return vscode.window.showInformationMessage('No staged edit.'); const d=await vscode.workspace.openTextDocument(proposed.uri); const i=d.getText().indexOf(proposed.replacement); if(i>=0){const e=new vscode.WorkspaceEdit();e.replace(proposed.uri,new vscode.Range(d.positionAt(i),d.positionAt(i+proposed.replacement.length)),proposed.original);await vscode.workspace.applyEdit(e);} proposed=undefined; }
 export function deactivate() {}
