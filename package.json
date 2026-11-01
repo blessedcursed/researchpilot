@@ -1,0 +1,28 @@
+{
+  "name": "papilot-codex",
+  "displayName": "Papilot Codex for LaTeX",
+  "description": "AI-assisted LaTeX research workflow with PDF preview and Codex CLI edits.",
+  "version": "0.1.0",
+  "publisher": "local",
+  "license": "MIT",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Other", "Machine Learning"],
+  "activationEvents": ["onCommand:papilotCodex.openPreview", "onCommand:papilotCodex.commentSelection", "onCommand:papilotCodex.compile"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {"command":"papilotCodex.openPreview","title":"Papilot Codex: Open PDF Preview"},
+      {"command":"papilotCodex.commentSelection","title":"Papilot Codex: Comment on Selection"},
+      {"command":"papilotCodex.compile","title":"Papilot Codex: Compile LaTeX"},
+      {"command":"papilotCodex.acceptEdit","title":"Papilot Codex: Accept Proposed Edit"},
+      {"command":"papilotCodex.rejectEdit","title":"Papilot Codex: Reject Proposed Edit"}
+    ],
+    "configuration": {"title":"Papilot Codex", "properties": {
+      "papilotCodex.codexCommand": {"type":"string","default":"codex","description":"Codex CLI executable"},
+      "papilotCodex.latexCommand": {"type":"string","default":"latexmk","description":"LaTeX compiler executable"},
+      "papilotCodex.latexArgs": {"type":"array","items":{"type":"string"},"default":["-pdf","-interaction=nonstopmode"],"description":"Arguments passed before the root .tex file"}
+    }}
+  },
+  "scripts": {"compile":"tsc -p ./", "test":"node ./out/test/smoke.js", "package":"npm run compile && npx @vscode/vsce package --no-dependencies"},
+  "devDependencies": {"@types/node":"^20.0.0","@types/vscode":"^1.85.0","@vscode/test-electron":"^2.4.0","@vscode/vsce":"^2.25.0","typescript":"^5.3.0"}
+}
