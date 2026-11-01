@@ -84,7 +84,12 @@ async function compile() {
       const command = isWsl ? 'sudo apt update && sudo apt install -y latexmk texlive-latex-base texlive-latex-extra' : 'Install MiKTeX or TeX Live and add latexmk to PATH';
       vscode.window.showErrorMessage(`ResearchPilot не нашёл рабочий LaTeX-компилятор (${cmd}). Установи latexmk: ${command}`, 'Copy command').then(action => { if (action === 'Copy command') vscode.env.clipboard.writeText(command); });
     } else {
-      vscode.window.showErrorMessage(`LaTeX compilation failed: ${(error as Error).message}`);
+      const message = (error as Error).message;
+      const output = vscode.window.createOutputChannel('ResearchPilot LaTeX');
+      output.appendLine(`Compilation failed for ${tex.fsPath}`);
+      output.appendLine(message);
+      output.show(true);
+      vscode.window.showErrorMessage('LaTeX compilation failed: исправь ошибку в .tex-файле. Подробный лог открыт в панели ResearchPilot LaTeX.');
     }
   }
 }
