@@ -1,4 +1,4 @@
-# Papilot Codex for LaTeX (MVP)
+# ResearchPilot for LaTeX (MVP)
 
 VS Code extension for a Papilot-style LaTeX workflow: open a neighboring PDF, select/copy a passage, leave a reviewer note, ask the locally authenticated Codex CLI for a minimal edit, and accept or reject the proposed change. It also supports a basic source lookup and `latexmk` recompilation.
 

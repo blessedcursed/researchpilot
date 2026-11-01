@@ -1,7 +1,7 @@
 {
-  "name": "papilot-codex",
-  "displayName": "Papilot Codex for LaTeX",
-  "description": "AI-assisted LaTeX research workflow with PDF preview and Codex CLI edits.",
+  "name": "researchpilot",
+  "displayName": "ResearchPilot for LaTeX",
+  "description": "AI-assisted research workflow with PDF preview and CLI-based edits.",
   "version": "0.1.0",
   "publisher": "local",
   "license": "MIT",
